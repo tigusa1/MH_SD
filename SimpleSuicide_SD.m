@@ -47,6 +47,11 @@ if nargin
     ar = get(handles.ar,'Value'); handles.ar_txt.String = sprintf('ar = %.2f',ar);
     ac = get(handles.ac,'Value'); handles.ac_txt.String = sprintf('ac = %.2f',ac);
     aa = get(handles.aa,'Value'); handles.aa_txt.String = sprintf('aa = %.2f',aa);
+    b0 = get(handles.b0,'Value'); handles.b0_txt.String = sprintf('b0 = %.2f',b0);
+    Ir = get(handles.Ir,'Value'); handles.Ir_txt.String = sprintf('Ir = %.2f',Ir);
+    Ic = get(handles.Ic,'Value'); handles.Ic_txt.String = sprintf('Ic = %.2f',Ic);
+    Ia = get(handles.Ia,'Value'); handles.Ia_txt.String = sprintf('Ia = %.2f',Ia);
+    Pn = get(handles.Pn,'Value'); handles.Pn_txt.String = sprintf('Pn = %.2f',Pn);
 end
 
 Is0   = {Ir,Ic,Ia};
