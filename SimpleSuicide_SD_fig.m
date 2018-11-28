@@ -22,7 +22,7 @@ function varargout = SimpleSuicide_SD_fig(varargin)
 
 % Edit the above text to modify the response to help SimpleSuicide_SD_fig
 
-% Last Modified by GUIDE v2.5 28-Nov-2018 14:40:48
+% Last Modified by GUIDE v2.5 28-Nov-2018 13:51:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,7 +78,4 @@ function ar_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD(handles)
 
 function ac_Callback(hObject, eventdata, handles)
-SimpleSuicide_SD(handles)
-
-function aa_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD(handles)
