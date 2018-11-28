@@ -46,6 +46,7 @@ pn0= 0.3;
 if nargin
     ar = get(handles.ar,'Value'); handles.ar_txt.String = sprintf('ar = %.2f',ar);
     ac = get(handles.ac,'Value'); handles.ac_txt.String = sprintf('ac = %.2f',ac);
+    aa = get(handles.aa,'Value'); handles.aa_txt.String = sprintf('aa = %.2f',aa);
 end
 
 Is0   = {Ir,Ic,Ia};
