@@ -56,27 +56,29 @@ end
 
 Is0   = {Ir,Ic,Ia};
 Ilbl  = {'recovery','community','awareness'};
-Iplot = linspace(0,1,100);
+nplot = 30;
+Iplotx= linspace(0,1,nplot);
+Iploty= linspace(0,1,nplot+1);
 
 if ~nargin
     fig = figure(100); fig.Name = 'ES';
     for k=1:3
         Is     = Is0;
-        Is{k}  = Iplot;
+        Is{k}  = Iplotx;
         [ pntot,Sn,EStot,ESr,ESc,ESa,EStot0,ESr0,ESc0,ESa0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
         
         subplot(3,1,k)
-        plot(Iplot,EStot,'b-',Iplot,EStot0,'r-')
+        plot(Iplotx,EStot,'b-',Iplotx,EStot0,'r-')
         title(Ilbl{k})
     end
 end
 
-[ Ixy{1},Ixy{2} ] = meshgrid(Iplot,Iplot);
+[ Ixy{1},Ixy{2} ] = meshgrid(Iplotx,Iploty);
 if nargin
     h_axes = {handles.axes1,handles.axes2,handles.axes3,...
         handles.axes4,handles.axes5,handles.axes6,handles.axes7,handles.axes8,handles.axes9};
 else
-    fig = figure(110); fig.Name = 'ES 3D'; h_axes = [];
+    fig = figure(110); fig.Name = 'ES 3D'; clf, h_axes = [];
 end
 
 for k=1:3
@@ -87,19 +89,19 @@ for k=1:3
     end
     [ pntot,Sn,EStot,ESr,ESc,ESa,EStot0,ESr0,ESc0,ESa0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
     
-    if k==1, zmax = max(EStot(:)); end
-    plotImagesc(k,1,Iplot,EStot, Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,zmax)
-    plotImagesc(k,2,Iplot,EStot0,Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,zmax)
-    plotImagesc(k,3,Iplot,pntot, Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,pn0)
+    if k<3, zmax = max(EStot(:)); end
+    plotImagesc(k,1,Iplotx,Iploty,EStot, Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,zmax)
+    plotImagesc(k,2,Iplotx,Iploty,EStot0,Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,zmax)
+    plotImagesc(k,3,Iplotx,Iploty,pntot, Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,pn0)
 end
 
 
-function plotImagesc(krow,kcol,Iplot,Z,Ilblx,Ilbly,Ilblk,Isk,h_axes,Nargin,zmax)
+function plotImagesc(krow,kcol,Iplotx,Iploty,Z,Ilblx,Ilbly,Ilblk,Isk,h_axes,Nargin,zmax)
 %----------------------------------------------------------------------------------------------
 % plot imagesc of Z
 %----------------------------------------------------------------------------------------------
 if Nargin, axes(h_axes{krow+kcol*3-3}), else, subplot(3,3,sub2ind([3 3],kcol,krow)), end
-imagesc(Iplot,Iplot,Z)
+imagesc(Iplotx,Iploty,Z)
 if ~isempty(zmax), caxis([0 zmax]), end
 xlabel(Ilblx), ylabel(Ilbly), title(sprintf('%s, I=%.2f',Ilblk,Isk))
 ax = gca; ax.YDir = 'normal';
@@ -111,7 +113,7 @@ function [ pntot,Sn,EStot,ESr,ESc,ESa,EStot0,ESr0,ESc0,ESa0 ] = fES(a0,ar,ac,aa,
 %----------------------------------------------------------------------------------------------
 Ir   = Is{1}; Ic = Is{2}; Ia = Is{3};
 b    = @(ia) b0*(1 - aa*ia);
-pn   = @(ia,ir,ic) a0*pn0 ./ (a0 + ac*ic + ar*ir*b(ia));
+pn   = @(ia,ir,ic) a0*pn0 ./ (a0 + ac*ic + ar*ir.*b(ia));
 pntot= pn(Ia,Ir,Ic);
 btot = b(Ia);
 Sn   = 1./(1 + 2*btot.*pntot);
