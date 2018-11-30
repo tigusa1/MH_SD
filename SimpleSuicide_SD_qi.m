@@ -97,9 +97,12 @@ for k=1:size(Y,1)
     if k <5
     ylim([0,1])
     if k > 2 
-     ylim([0,0.4])   
+     ylim([0,0.4]) 
     end
     end
+    if k ==5
+         ylim([0,0.06])
+     end
     xlim([0,12])
     
     
