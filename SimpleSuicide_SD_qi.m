@@ -1,6 +1,6 @@
 function SimpleSuicide_SD_qi(handles)
-global a0  ac ar aa b0 Ic Ia Ir c 
-global N Tmax 
+global a0  ac ar aa b0 Ic Ia Ir c
+global N Tmax
 %----------------------------------------------------------------------------------------------
 % SD model for suicide
 %----------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ global N Tmax
 % internal:  +a0*Sn*(pn0 - pn)
 % community: -ac*Ic*Sn*pn
 % recovery:  -ar*Ir*Sr
-% 
+%
 % STOCKS
 % non-suicidal: Sn
 % suicidal:     Ss = b*Sn*pn
@@ -46,7 +46,7 @@ c = 0.00001;
 
 pn0 = 0.3;
 
-                          % number of time steps
+% number of time steps
 
 tspan = linspace(0, Tmax, N); % unit: month
 
@@ -63,7 +63,7 @@ end
 SnnPD = pn0;
 W0 = [1-pn0 pn0 0 0 0];
 Tmax = 12;                            % change yearly
-N =  600;  
+N =  600;
 
 [SnPD, SnnPD, Ss, SrPD, SrnPD] = rk_Suicide_SD( W0);
 Y = [SnPD;SnnPD;Ss;SrPD;SrnPD;Ss*c];
@@ -95,14 +95,14 @@ for k=1:size(Y,1)
     end
     plot(tspan,Y(k,:),'LineWidth',2),title(sprintf(TLTS{k})),
     if k <5
-    ylim([0,1])
-    if k > 2 
-     ylim([0,0.4]) 
-    end
+        ylim([0,1])
+        if k > 2
+            ylim([0,0.4])
+        end
     end
     if k ==5
-         ylim([0,0.06])
-     end
+        ylim([0,0.06])
+    end
     xlim([0,12])
     
     
@@ -110,10 +110,10 @@ for k=1:size(Y,1)
 end
 
 
-function [SnPD, SnnPD, Ss,SrPD, SrnPD] = rk_Suicide_SD(W); 
+function [SnPD, SnnPD, Ss,SrPD, SrnPD] = rk_Suicide_SD(W)
 %----------------------------------------------------------------------------------------------
 % Runge-Kutta solver for the suicide ODEs
-% W = Sn Ss Sr DE
+% W = Sn_PD Sn_nPD Ss Sr_Pd Sr_nPd
 %----------------------------------------------------------------------------------------------
 global Tmax N                                            % Tmax = maximum time (months), N = number of time points
 
@@ -121,15 +121,15 @@ n    = size(W,1);                                        % number of samples
 Tmin = 0;                                                % minimum time
 h    = (Tmax - Tmin) / N;                                % time increment
 SnPD   = zeros(n,N);
-SnnPD   = zeros(n,N); Ss = SnPD; 
-SrPD    = SnnPD;   SrnPD = SnnPD;                        % initialize the vecotors 
-for i = 1:N                                              % for each time step   
+SnnPD   = zeros(n,N); Ss = SnPD;
+SrPD    = SnnPD;   SrnPD = SnnPD;                        % initialize the vecotors
+for i = 1:N                                              % for each time step
     t       = Tmin + h*i;
-%     SnPD(:,i) = max(W(:,1), 0);                        % stock of non suicidal with PD
-%     SnnPD(:,i)= max(W(:,2), 0);                        % stock of suicidal without PD
-%     Ss(:,i)   = max(W(:,3), 0);                        % stock of suicidal
-%     SrPD(:,i) = max(W(:,4), 0);                        % stock of recovery with PD
-%     SrnPD(:,i)= max(W(:,5), 0);                        % stock of recovery without PD
+    %     SnPD(:,i) = max(W(:,1), 0);                        % stock of non suicidal with PD
+    %     SnnPD(:,i)= max(W(:,2), 0);                        % stock of suicidal without PD
+    %     Ss(:,i)   = max(W(:,3), 0);                        % stock of suicidal
+    %     SrPD(:,i) = max(W(:,4), 0);                        % stock of recovery with PD
+    %     SrnPD(:,i)= max(W(:,5), 0);                        % stock of recovery without PD
     SnPD(:,i) = W(:,1);                        % stock of non suicidal with PD
     SnnPD(:,i)= W(:,2);                        % stock of suicidal without PD
     Ss(:,i)   = W(:,3);                        % stock of suicidal
@@ -145,7 +145,7 @@ end
 
 function dW = fdW(W)
 %----------------------------------------------------------------------------------------------
-% COPEWELL ODE: 
+% COPEWELL ODE:
 %   dW/dt = fdW(t,W)
 %   W     = Sn_PD Sn_nPD Ss Sr_Pd Sr_nPd
 %----------------------------------------------------------------------------------------------
@@ -153,30 +153,24 @@ function dW = fdW(W)
 %----------------------------------------------------------------------------------------------
 global a0  ac ar aa b0 Ic Ia Ir c          % parameters for stocks into AT
 
-SnPD    = max(W(:,1), 0);                        % stock of non suicidal with PD
-SnnPD   = max(W(:,2), 0);                        % stock of suicidal without PD
-Ss      = max(W(:,3), 0);                        % stock of suicidal 
-SrPD    = max(W(:,4), 0);                        % stock of recovery with PD
-SrnPD   = max(W(:,5), 0);                        % stock of recovery without PD
-
 SnPD    = W(:,1);                        % stock of non suicidal with PD
 SnnPD   = W(:,2);                        % stock of suicidal without PD
-Ss      = W(:,3);                        % stock of suicidal 
+Ss      = W(:,3);                        % stock of suicidal
 SrPD    = W(:,4);                        % stock of recovery with PD
 SrnPD   = W(:,5);                        % stock of recovery without PD
 
 
-% rate constant 
-nnPD_nPD_rate      = a0;
+% rate constant
+nnPD_nPD_rate      = a0;                 
 nPD_nnPD_rate      = ac*Ic;
-nPD_s_rate        = b0*(1 - aa*Ia);
-s_rPD_rate         = 1-ar*Ir;
-s_rnPD_rate        = (ar)*Ir;
+nPD_s_rate         = b0*(1 - aa*Ia);
+s_rPD_rate         = a1*(1-ar*Ir);
+s_rnPD_rate        = a1*((ar)*Ir);
 rnPD_nnPD_rate     = 1;
 rPD_nPD_rate       = 1;
 s_suicide_rate     = c;
 
-% flow 
+% flow
 nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;
 nPD_nnPD_flow      = nPD_nnPD_rate .* SnPD ;
 nPD_s_flow         = nPD_s_rate    .* SnPD;
@@ -190,12 +184,15 @@ birth_flow         = s_suicide_flow;
 
 
 % Derivatives
+% temporary Derivatives
 dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + birth_flow;            % dSnnPD/dt
-dSnPD  = -nPD_nnPD_flow - nPD_s_flow + nnPD_nPD_flow +rPD_nPD_flow;  
+dSnPD  = -nPD_nnPD_flow - nPD_s_flow + nnPD_nPD_flow +rPD_nPD_flow;
 dSs    = -s_rPD_flow - s_rnPD_flow - s_suicide_flow + nPD_s_flow;
-dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;  
-dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;   
+dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;
+dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;
 
+% check if the temporary derivatives are feasible (net flow out is less than the stock). 
+% if not, than there is no outflow from the stock 
 if dSnnPD + SnnPD <= 0
     nnPD_nPD_flow = 0;
 end
@@ -215,15 +212,16 @@ if SrnPD + dSrnPD <= 0
     rnPD_nnPD_flow = 0;
 end
 
+% real Derivatives 
 dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + birth_flow;            % dSnnPD/dt
-dSnPD  = -nPD_nnPD_flow - nPD_s_flow + nnPD_nPD_flow +rPD_nPD_flow;  
+dSnPD  = -nPD_nnPD_flow - nPD_s_flow + nnPD_nPD_flow +rPD_nPD_flow;
 dSs    = -s_rPD_flow - s_rnPD_flow - s_suicide_flow + nPD_s_flow;
-dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;  
-dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;   
+dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;
+dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;
 
 
-dW(:,1) = dSnPD;  
-dW(:,2) = dSnnPD; 
-dW(:,3) = dSs;  
-dW(:,4) = dSrPD; 
+dW(:,1) = dSnPD;
+dW(:,2) = dSnnPD;
+dW(:,3) = dSs;
+dW(:,4) = dSrPD;
 dW(:,5) = dSrnPD;
