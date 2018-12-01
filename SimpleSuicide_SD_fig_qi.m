@@ -22,7 +22,7 @@ function varargout = SimpleSuicide_SD_fig_qi(varargin)
 
 % Edit the above text to modify the response to help SimpleSuicide_SD_fig_qi
 
-% Last Modified by GUIDE v2.5 30-Nov-2018 19:49:11
+% Last Modified by GUIDE v2.5 01-Dec-2018 13:31:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -87,25 +87,45 @@ function a0_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
 function Ir_Callback(hObject, eventdata, handles)
+handles.Ir_new.Value = get(handles.Ir,'Value');
+handles.Ir_new_txt.String = sprintf('Ir_new = %.2f (new recovery program index)',get(handles.Ir,'Value'));
 SimpleSuicide_SD_qi(handles)
 
 function Ic_Callback(hObject, eventdata, handles)
+handles.Ic_new.Value = get(handles.Ic,'Value');
+handles.Ic_new_txt.String = sprintf('Ic_new = %.2f (new community program index)',get(handles.Ic,'Value'));
 SimpleSuicide_SD_qi(handles)
 
 function Ia_Callback(hObject, eventdata, handles)
+handles.Ia_new.Value = get(handles.Ia,'Value');
+handles.Ia_new_txt.String = sprintf('Ia_new = %.2f (new awareness raising index)',get(handles.Ia,'Value'));
 SimpleSuicide_SD_qi(handles)
 
 function b_suicide_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
-
-% --- Executes on slider movement.
 function a1_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
-% --- Executes on slider movement.
 function a2_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
 function Pn_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
+
+function trecovery_Callback(hObject, eventdata, handles)
+SimpleSuicide_SD_qi(handles)
+
+function tchange_Callback(hObject, eventdata, handles)
+SimpleSuicide_SD_qi(handles)
+
+function Ia_new_Callback(hObject, eventdata, handles)
+SimpleSuicide_SD_qi(handles)
+
+function Ic_new_Callback(hObject, eventdata, handles)
+SimpleSuicide_SD_qi(handles)
+
+function Ir_new_Callback(hObject, eventdata, handles)
+SimpleSuicide_SD_qi(handles)
+    
+   
