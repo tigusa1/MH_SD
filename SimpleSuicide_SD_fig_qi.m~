@@ -22,7 +22,7 @@ function varargout = SimpleSuicide_SD_fig_qi(varargin)
 
 % Edit the above text to modify the response to help SimpleSuicide_SD_fig_qi
 
-% Last Modified by GUIDE v2.5 30-Nov-2018 19:49:11
+% Last Modified by GUIDE v2.5 30-Nov-2018 19:31:42
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -103,9 +103,11 @@ SimpleSuicide_SD_qi(handles)
 function a1_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
+
 % --- Executes on slider movement.
 function a2_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
 function Pn_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
+
