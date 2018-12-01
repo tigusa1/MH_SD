@@ -168,15 +168,15 @@ rPD_nPD_rate       = 1;                  % Sr PD to Sn PD
 s_suicide_rate     = b_suicide;          % proportional of Ss to commit suicide             
 death_birth_rate   = 1;
 % flow
-nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;
-nPD_nnPD_flow      = nPD_nnPD_rate .* SnPD ;
-nPD_s_flow         = nPD_s_rate    .* SnPD;
-s_rPD_flow         = s_rPD_rate    .* Ss;
-s_rnPD_flow        = s_rnPD_rate   .* Ss;
-rnPD_nnPD_flow     = rnPD_nnPD_rate.* SrnPD;
-rPD_nPD_flow       = rPD_nPD_rate  .* SrPD;
-s_suicide_flow     = s_suicide_rate.* Ss;
-death_birth_flow   = death_birth_rate.* Sdeath;
+nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;   % flow from non Sn,noPD to non Sn,PD
+nPD_nnPD_flow      = nPD_nnPD_rate .* SnPD ;   % flow from non Sn,PD to non Sn,noPD
+nPD_s_flow         = nPD_s_rate    .* SnPD;    % flow from non Sn,PD to Ss
+s_rPD_flow         = s_rPD_rate    .* Ss;      % flow from non Ss,PD to Sr,PD
+s_rnPD_flow        = s_rnPD_rate   .* Ss;      % flow from non Ss,PD to Sr,noPD
+rnPD_nnPD_flow     = rnPD_nnPD_rate.* SrnPD;   % flow from non Sr,noPD to Sn,noPD
+rPD_nPD_flow       = rPD_nPD_rate  .* SrPD;    % flow from non Sr,PD to Sn,PD
+s_suicide_flow     = s_suicide_rate.* Ss;      % flow from non Ss to death
+death_birth_flow   = death_birth_rate.* Sdeath;% flow from death to Sn,noPD
 
 
 

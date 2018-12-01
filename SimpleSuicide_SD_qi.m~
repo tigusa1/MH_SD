@@ -55,21 +55,21 @@ if nargin
     Ir = get(handles.Ir,'Value'); handles.Ir_txt.String = sprintf('Ir = %.2f (recovery program index)',Ir);
     Ic = get(handles.Ic,'Value'); handles.Ic_txt.String = sprintf('Ic = %.2f (community program index)',Ic);
     Ia = get(handles.Ia,'Value'); handles.Ia_txt.String = sprintf('Ia = %.2f (awareness raising index)',Ia);
-    pn0= get(handles.Pn,'Value'); handles.Pn_txt.String = sprintf('Pn = %.2f (initial proportion of PD)' ,pn0);
+    pn0= get(handles.Pn,'Value'); handles.Pn_txt.String = sprintf('Pn0 = %.2f (initial proportion of PD)' ,pn0);
     b_suicide = get(handles.b_suicide,'Value'); handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
 end
 
 SnnPD = pn0;
-W0    = [1-pn0 pn0 0 0 0];
+W0    = [1-SnnPD SnnPD 0 0 0 0];       % initial condition: all people in non-suicidal stock
 
 Tmax  = 20;                            % maximum time
 N     = 600;
 tspan = linspace(0, Tmax, N);          % unit: day
 
 % run the ODE model
-[SnPD, SnnPD, Ss, SrPD, SrnPD] = rk_Suicide_SD( W0);
+[SnPD, SnnPD, Ss, SrPD, SrnPD, Sdeath] = rk_Suicide_SD( W0);
 % combine the stocks into one matrix, for plot
-Y = [SnPD;SnnPD;Ss;SrPD;SrnPD;Ss*b_suicide];
+Y = [SnPD;SnnPD;Ss;SrPD;SrnPD;Sdeath];
 TLTS = {'S_n with PD',...
     'S_n without PD',...
     'S_s',...
@@ -94,12 +94,16 @@ for k=1:size(Y,1)
     % set different y limit in subplots
     if k <5
         ylim([0,1])
-        if k > 2
-            ylim([0,0.4])
+        if k > 2   
+            ylim([0,0.6])
         end
     end
     if k ==5
-        ylim([0,0.06])
+        if max(Y(k,:)) <= 0.1
+        ylim([0,0.1])
+        else
+        ylim([0,0.3]) 
+        end
     end
     xlim([0,Tmax])  
     xlabel('time (year)')
@@ -164,27 +168,26 @@ rPD_nPD_rate       = 1;                  % Sr PD to Sn PD
 s_suicide_rate     = b_suicide;          % proportional of Ss to commit suicide             
 death_birth_rate   = 1;
 % flow
-nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;
-nPD_nnPD_flow      = nPD_nnPD_rate .* SnPD ;
-nPD_s_flow         = nPD_s_rate    .* SnPD;
-s_rPD_flow         = s_rPD_rate    .* Ss;
+nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;   % flow from non S_n,noPD to non S_n,PD
+nPD_nnPD_flow      = nPD_nnPD_rate .* SnPD ;   % flow from non S_n,PD to non S_n,noPD
+nPD_s_flow         = nPD_s_rate    .* SnPD;    % flow from non S_n,PD to non Ss
+s_rPD_flow         = s_rPD_rate    .* Ss;      % flow from non Ss,PD to non Sr,
 s_rnPD_flow        = s_rnPD_rate   .* Ss;
 rnPD_nnPD_flow     = rnPD_nnPD_rate.* SrnPD;
 rPD_nPD_flow       = rPD_nPD_rate  .* SrPD;
 s_suicide_flow     = s_suicide_rate.* Ss;
-birth_flow         = s_suicide_flow;
 death_birth_flow   = death_birth_rate.* Sdeath;
 
 
 
 % Derivatives
 % temporary Derivatives
-dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + birth_flow;            % dSnnPD/dt
+dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + death_birth_flow;            % dSnnPD/dt
 dSnPD  = -nPD_nnPD_flow - nPD_s_flow    + nnPD_nPD_flow  + rPD_nPD_flow;
 dSs    = -s_rPD_flow    - s_rnPD_flow   - s_suicide_flow + nPD_s_flow;
 dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;
 dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;
-ddeath = s_suicide_flow  - death_birth_flow;
+ddeath =  - death_birth_flow + s_suicide_flow ;
 
 % check if the temporary derivatives are feasible (net flow out is less than the stock). 
 % if not, than there is no outflow from the stock 
@@ -212,12 +215,12 @@ if Sdeath + ddeath <= 0
 end
 
 % recalculate Derivatives 
-dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + birth_flow;            % dSnnPD/dt
+dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + death_birth_flow;            % dSnnPD/dt
 dSnPD  = -nPD_nnPD_flow - nPD_s_flow    + nnPD_nPD_flow  + rPD_nPD_flow;
 dSs    = -s_rPD_flow    - s_rnPD_flow   - s_suicide_flow + nPD_s_flow;
 dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;
 dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;
-ddeath = s_suicide_flow  - death_birth_flow;
+ddeath =  - death_birth_flow + s_suicide_flow ;
 
 
 dW(:,1) = dSnPD;
