@@ -1,6 +1,6 @@
 function SimpleSuicide_SD_qi(handles)
 global a0 a1 a2 ac ar aa Ic Ia Ir b_suicide
-global N Tmax
+global nt Tmax
 %----------------------------------------------------------------------------------------------
 % SD model for suicide
 %----------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ aa = 0.5;
 Ir = 0.50;
 Ic = 0.51;
 Ia = 0.52;
-b_suicide = 0.00001;
+b_suicide = 0.01;
 
 pn0 = 0.3;
 
@@ -55,15 +55,17 @@ if nargin
     handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
 end
 
-Snn = pn0;
-W0    = [1-Snn Snn 0 0 0 0];           % initial condition: all people in non-suicidal stock
+Sn    = pn0;
+W0    = [Sn 1-Sn 0 0 0 0];             % initial condition: all people in non-suicidal stock
 
-Tmax  = 20;                            % maximum time
-N     = 600;
-tspan = linspace(0, Tmax, N)';         % unit: day
+Tmax  = 5;                             % maximum time
+nt    = 600;
+tscale= 12;                            % scale the time (month)
+tspan = linspace(0, Tmax, nt)';        % unit: year
+trecovery = 1/2;                       % time for recovery program (year)
 
 % run the ODE model
-[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD(W0);
+[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD(W0,tscale,trecovery);
 
 % combine the stocks into one matrix, for plot
 Y = [Sn Snn Ss Sr Srn Sdeath];
@@ -72,7 +74,7 @@ TLTS = {'S_n with PD',...
     'S_s',...
     'S_r with PD',...
     'S_r without PD',...
-    'S_{death}'};            % titles for each subplots
+    'S_{death}'};                      % titles for each subplots
 
 if nargin
     h_axes = {handles.axes1,handles.axes2,handles.axes3,...
@@ -87,19 +89,19 @@ for k=1:size(Y,2)
     else
         subplot(2,3,k),
     end
-    plot(tspan,Y(:,k),'LineWidth',2),title(sprintf(TLTS{k})),
+    plot(tspan,Y(:,k)*100,'LineWidth',2),title(sprintf(TLTS{k})),
     % set different y limit in subplots
     if k <5
-        ylim([0,1])
+        ylim([0,100])
         if k > 2
-            ylim([0,0.6])
+            ylim([0,60])
         end
     end
     if k==5
         if max(Y(:,k)) <= 0.1
-            ylim([0,0.1])
+            ylim([0,10])
         else
-            ylim([0,0.3])
+            ylim([0,30])
         end
     end
     xlim([0,Tmax])
@@ -107,30 +109,39 @@ for k=1:size(Y,2)
 end
 
 
-function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD(W0)
+function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD( W0, tscale, trecovery )
 %----------------------------------------------------------------------------------------------
 % Runge-Kutta solver for the suicide ODEs
 % W = Sn_ Sn_n Ss Sr_ Sr_n
 %----------------------------------------------------------------------------------------------
-global Tmax N                                            % Tmax = maximum time (months), N = number of time points
+global Tmax nt                                  % Tmax = maximum time (months), nt = number of time points
 
-m    = size(W0,2);                                       % number of variables
-Tmin = 0;                                                % minimum time
-h    = (Tmax - Tmin) / N;                                % time increment
-W    = nan(N,m);
+m    = size(W0,2);                              % number of variables
+Tmin = 0;                                       % minimum time
+h    = (Tmax - Tmin) / nt * tscale;             % time increment
+W    = nan(nt,m);
 dW   = W;
+irecovery = ceil(trecovery*tscale/h);           % time steps for trecovery
 
 W(1,:)= W0;                                     % initialize W
 
-for i = 1:N-1                                   % for each time step
+for i = 1:nt-1                                  % for each time step
     t          = Tmin + h*i;
     Wi = W(i,:);                                % get W at time t
     k1 = fdW(Wi);                               % integrate one step using Runge-Kutta
     k2 = fdW(Wi + k1 * h/2);
     k3 = fdW(Wi + k2 * h/2);
     k4 = fdW(Wi + k3 * h);
-    dW(i,:)  = (k1 + 2*k2 + 2*k3 + k4) * h/6;
-    W(i+1,:) = Wi + dW(i,:);
+    dW(i,:) = (k1 + 2*k2 + 2*k3 + k4) * h/6;
+    Wi1     = Wi + dW(i,:);
+    if i>irecovery
+        dWir     = dW(i-irecovery,:);           % flow at time t-trecovery
+        Wi1(1:2) = Wi1(1:2) + dWir(4:5);
+        Wi1(4:5) = Wi1(4:5) - dWir(4:5);
+        Wi1(1)   = Wi1(1)   + dWir(6  );
+        Wi1(6)   = Wi1(6)   - dWir(6  );
+    end
+    W(i+1,:)= Wi1;
 end
 
 Sn    = W(:,1);                        % stock of non suicidal with PD
@@ -161,10 +172,10 @@ n_nn_rate      = ac*Ic;              % community intervention
 n_s_rate       = a0*(1 - aa*Ia);     % Sn with PD to suicidal (by awareness)
 s_r_rate       = a1*(1-ar*Ir);       % Ss to Sr with PD (by recovery)
 s_rn_rate      = a1*((ar)*Ir);       % Ss to Sr without PD (by recovery)
-rn_nn_rate     = 1;                  % Sr no PD to Sn no PD
-r_n_rate       = 1;                  % Sr PD to Sn PD
+rn_nn_rate     = 0;                  % Sr no PD to Sn no PD
+r_n_rate       = 0;                  % Sr PD to Sn PD
 s_suicide_rate = b_suicide;          % proportional of Ss to commit suicide
-death_birth_rate = 1;
+death_birth_rate = 0;
 
 % flow
 nn_n_flow        = nn_n_rate * Snn;   % flow from non Sn,noPD to non Sn,PD
