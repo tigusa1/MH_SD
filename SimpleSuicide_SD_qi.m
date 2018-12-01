@@ -51,21 +51,22 @@ if nargin
     Ic = get(handles.Ic,'Value'); handles.Ic_txt.String = sprintf('Ic = %.2f (community program index)',Ic);
     Ia = get(handles.Ia,'Value'); handles.Ia_txt.String = sprintf('Ia = %.2f (awareness raising index)',Ia);
     pn0= get(handles.Pn,'Value'); handles.Pn_txt.String = sprintf('Pn0 = %.2f (initial proportion of PD)' ,pn0);
-    b_suicide = get(handles.b_suicide,'Value'); handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
+    b_suicide = get(handles.b_suicide,'Value');
+    handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
 end
 
 Snn = pn0;
-W0    = [1-Snn Snn 0 0 0 0];       % initial condition: all people in non-suicidal stock
+W0    = [1-Snn Snn 0 0 0 0];           % initial condition: all people in non-suicidal stock
 
 Tmax  = 20;                            % maximum time
 N     = 600;
-tspan = linspace(0, Tmax, N);          % unit: day
+tspan = linspace(0, Tmax, N)';         % unit: day
 
 % run the ODE model
-[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD( W0);
+[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD(W0);
 
 % combine the stocks into one matrix, for plot
-Y = [Sn;Snn;Ss;Sr;Srn;Sdeath];
+Y = [Sn Snn Ss Sr Srn Sdeath];
 TLTS = {'S_n with PD',...
     'S_n without PD',...
     'S_s',...
@@ -80,13 +81,13 @@ else
     fig = figure(110); fig.Name = 'SD_model'; clf, h_axes = [];
 end
 
-for k=1:size(Y,1)
+for k=1:size(Y,2)
     if nargin
         axes(h_axes{k}),
     else
         subplot(2,3,k),
     end
-    plot(tspan,Y(k,:),'LineWidth',2),title(sprintf(TLTS{k})),
+    plot(tspan,Y(:,k),'LineWidth',2),title(sprintf(TLTS{k})),
     % set different y limit in subplots
     if k <5
         ylim([0,1])
@@ -94,8 +95,8 @@ for k=1:size(Y,1)
             ylim([0,0.6])
         end
     end
-    if k ==5
-        if max(Y(k,:)) <= 0.1
+    if k==5
+        if max(Y(:,k)) <= 0.1
             ylim([0,0.1])
         else
             ylim([0,0.3])
@@ -106,34 +107,38 @@ for k=1:size(Y,1)
 end
 
 
-function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD(W)
+function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD(W0)
 %----------------------------------------------------------------------------------------------
 % Runge-Kutta solver for the suicide ODEs
 % W = Sn_ Sn_n Ss Sr_ Sr_n
 %----------------------------------------------------------------------------------------------
 global Tmax N                                            % Tmax = maximum time (months), N = number of time points
 
-n    = size(W,1);                                        % number of samples
+m    = size(W0,2);                                       % number of variables
 Tmin = 0;                                                % minimum time
 h    = (Tmax - Tmin) / N;                                % time increment
-Sn    = zeros(n,N);
-Snn   = zeros(n,N); Ss = Sn;
-Sr    = Snn;   Srn = Snn;  Sdeath =  Snn;                % initialize the vecotors
+W    = nan(N,m);
+dW   = W;
 
-for i = 1:N                                     % for each time step
-    t       = Tmin + h*i;
-    Sn(:,i)    = W(:,1);                        % stock of non suicidal with PD
-    Snn(:,i)   = W(:,2);                        % stock of non suicidal without PD
-    Ss(:,i)    = W(:,3);                        % stock of suicidal
-    Sr(:,i)    = W(:,4);                        % stock of recovery with PD
-    Srn(:,i)   = W(:,5);                        % stock of recovery without PD
-    Sdeath(:,i)= W(:,6);                        % stock of death
-    k1 = fdW(W);                                % integrate one step using Runge-Kutta
-    k2 = fdW(W + k1 * h/2);
-    k3 = fdW(W + k2 * h/2);
-    k4 = fdW(W + k3 * h);
-    W  = W + (k1 + 2*k2 + 2*k3 + k4) * h/6;
+W(1,:)= W0;                                     % initialize W
+
+for i = 1:N-1                                   % for each time step
+    t          = Tmin + h*i;
+    Wi = W(i,:);                                % get W at time t
+    k1 = fdW(Wi);                               % integrate one step using Runge-Kutta
+    k2 = fdW(Wi + k1 * h/2);
+    k3 = fdW(Wi + k2 * h/2);
+    k4 = fdW(Wi + k3 * h);
+    dW(i,:)  = (k1 + 2*k2 + 2*k3 + k4) * h/6;
+    W(i+1,:) = Wi + dW(i,:);
 end
+
+Sn    = W(:,1);                        % stock of non suicidal with PD
+Snn   = W(:,2);                        % stock of non suicidal without PD
+Ss    = W(:,3);                        % stock of suicidal
+Sr    = W(:,4);                        % stock of recovery with PD
+Srn   = W(:,5);                        % stock of recovery without PD
+Sdeath= W(:,6);                        % stock of death
 
 
 function dW = fdW(W)
@@ -143,12 +148,12 @@ function dW = fdW(W)
 %----------------------------------------------------------------------------------------------
 global a0 a1 a2 ac ar aa Ic Ia Ir b_suicide          % parameters for stocks into AT
 
-Sn    = W(:,1);                        % stock of non suicidal with PD
-Snn   = W(:,2);                        % stock of non suicidal without PD
-Ss    = W(:,3);                        % stock of suicidal
-Sr    = W(:,4);                        % stock of recovery with PD
-Srn   = W(:,5);                        % stock of recovery without PD
-Sdeath= W(:,6);                        % stock of death
+Sn    = W(1);                        % stock of non suicidal with PD
+Snn   = W(2);                        % stock of non suicidal without PD
+Ss    = W(3);                        % stock of suicidal
+Sr    = W(4);                        % stock of recovery with PD
+Srn   = W(5);                        % stock of recovery without PD
+Sdeath= W(6);                        % stock of death
 
 % rate constant
 nn_n_rate      = a2;                 % internal growth
@@ -162,15 +167,15 @@ s_suicide_rate = b_suicide;          % proportional of Ss to commit suicide
 death_birth_rate = 1;
 
 % flow
-nn_n_flow        = nn_n_rate .* Snn;   % flow from non Sn,noPD to non Sn,PD
-n_nn_flow        = n_nn_rate .* Sn ;   % flow from non Sn,PD to non Sn,noPD
-n_s_flow         = n_s_rate  .* Sn;    % flow from non Sn,PD to Ss
-s_r_flow         = s_r_rate  .* Ss;    % flow from non Ss,PD to Sr,PD
-s_rn_flow        = s_rn_rate .* Ss;    % flow from non Ss,PD to Sr,noPD
-rn_nn_flow       = rn_nn_rate.* Srn;   % flow from non Sr,noPD to Sn,noPD
-r_n_flow         = r_n_rate  .* Sr;    % flow from non Sr,PD to Sn,PD
-s_suicide_flow   = s_suicide_rate.* Ss;      % flow from non Ss to death
-death_birth_flow = death_birth_rate.* Sdeath;% flow from death to Sn,noPD
+nn_n_flow        = nn_n_rate * Snn;   % flow from non Sn,noPD to non Sn,PD
+n_nn_flow        = n_nn_rate * Sn ;   % flow from non Sn,PD to non Sn,noPD
+n_s_flow         = n_s_rate  * Sn;    % flow from non Sn,PD to Ss
+s_r_flow         = s_r_rate  * Ss;    % flow from non Ss,PD to Sr,PD
+s_rn_flow        = s_rn_rate * Ss;    % flow from non Ss,PD to Sr,noPD
+rn_nn_flow       = rn_nn_rate* Srn;   % flow from non Sr,noPD to Sn,noPD
+r_n_flow         = r_n_rate  * Sr;    % flow from non Sr,PD to Sn,PD
+s_suicide_flow   = s_suicide_rate* Ss;      % flow from non Ss to death
+death_birth_flow = death_birth_rate* Sdeath;% flow from death to Sn,noPD
 
 % Derivatives
 % temporary Derivatives
@@ -214,9 +219,10 @@ dSrn = -rn_nn_flow + s_rn_flow;
 dSr  = -r_n_flow   + s_r_flow;
 ddeath =  -death_birth_flow + s_suicide_flow;
 
-dW(:,1) = dSn;
-dW(:,2) = dSnn;
-dW(:,3) = dSs;
-dW(:,4) = dSr;
-dW(:,5) = dSrn;
-dW(:,6) = ddeath;
+dW    = nan(1,6);
+dW(1) = dSn;
+dW(2) = dSnn;
+dW(3) = dSs;
+dW(4) = dSr;
+dW(5) = dSrn;
+dW(6) = ddeath;
