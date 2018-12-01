@@ -62,8 +62,8 @@ if nargin
     Ir_new = get(handles.Ir_new,'Value'); handles.Ir_new_txt.String = sprintf('Ir_new = %.2f (new recovery program index)',Ir_new);
     Ic_new = get(handles.Ic_new,'Value'); handles.Ic_new_txt.String = sprintf('Ic_new = %.2f (new community program index)',Ic_new);
     Ia_new = get(handles.Ia_new,'Value'); handles.Ia_new_txt.String = sprintf('Ia_new = %.2f (new awareness raising index)',Ia_new);
-    trecovery = get(handles.trecovery,'Value'); handles.trecovery_txt.String = sprintf('trecovery = %.2f ()',trecovery);
-    tchange = get(handles.tchange,'Value'); handles.tchange_txt.String = sprintf('tchange = %.2f ()',tchange);
+    trecovery = get(handles.trecovery,'Value'); handles.trecovery_txt.String = sprintf('trecovery = %.2f (time in recovery program)',trecovery);
+    tchange = get(handles.tchange,'Value'); handles.tchange_txt.String = sprintf('tchange = %.2f (time of intervention change)',tchange);
     b_suicide = get(handles.b_suicide,'Value');
     handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
 end
