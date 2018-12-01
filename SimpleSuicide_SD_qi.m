@@ -32,12 +32,18 @@ ar = 0.4;
 ac = 0.6;
 aa = 0.5;
 
-Ir = 0.50;
-Ic = 0.51;
-Ia = 0.52;
+Ir = 0.30;
+Ic = 0.30;
+Ia = 0.30;
 b_suicide = 0.01;
 
 pn0 = 0.3;
+
+% change of I at time tchange
+tchange = 2;              % time of change (years)
+Ic_new  = 0.9;            % change I
+Ir_new  = Ir;
+Ia_new  = Ia;
 
 % get the value by changing sliders
 if nargin
@@ -65,7 +71,7 @@ tspan = linspace(0, Tmax, nt)';        % unit: year
 trecovery = 1/2;                       % time for recovery program (year)
 
 % run the ODE model
-[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD(W0,tscale,trecovery);
+[Sn, Snn, Ss, Sr, Srn, Sdeath] = rk_Suicide_SD(W0,tscale,trecovery,tchange,Ir_new,Ic_new,Ia_new);
 
 % combine the stocks into one matrix, for plot
 Y = [Sn Snn Ss Sr Srn Sdeath];
@@ -109,12 +115,12 @@ for k=1:size(Y,2)
 end
 
 
-function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD( W0, tscale, trecovery )
+function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD( W0, tscale, trecovery,tchange,Ir_new,Ic_new,Ia_new )
 %----------------------------------------------------------------------------------------------
 % Runge-Kutta solver for the suicide ODEs
 % W = Sn_ Sn_n Ss Sr_ Sr_n
 %----------------------------------------------------------------------------------------------
-global Tmax nt                                  % Tmax = maximum time (months), nt = number of time points
+global Tmax nt Ir Ic Ia                         % Tmax = maximum time (months), nt = number of time points
 
 m    = size(W0,2);                              % number of variables
 Tmin = 0;                                       % minimum time
@@ -122,11 +128,19 @@ h    = (Tmax - Tmin) / nt * tscale;             % time increment
 W    = nan(nt,m);
 dW   = W;
 irecovery = ceil(trecovery*tscale/h);           % time steps for trecovery
+ichange   = ceil(tchange  *tscale/h);           % time step of tchange
+do_change = true;                               % command to change
 
 W(1,:)= W0;                                     % initialize W
 
 for i = 1:nt-1                                  % for each time step
     t          = Tmin + h*i;
+    if do_change && i>ichange
+        do_change = false;                      % turn off command to change
+        Ir        = Ir_new;
+        Ic        = Ic_new;
+        Ia        = Ia_new;       
+    end
     Wi = W(i,:);                                % get W at time t
     k1 = fdW(Wi);                               % integrate one step using Runge-Kutta
     k2 = fdW(Wi + k1 * h/2);
@@ -191,11 +205,11 @@ death_birth_flow = death_birth_rate* Sdeath;% flow from death to Sn,noPD
 % Derivatives
 % temporary Derivatives
 dSnn = -nn_n_flow + n_nn_flow + rn_nn_flow + death_birth_flow;            % dSnn/dt
-dSn  = -n_nn_flow - n_s_flow  + nn_n_flow  + r_n_flow;
-dSs  = -s_r_flow  - s_rn_flow - s_suicide_flow + n_s_flow;
-dSrn = -rn_nn_flow + s_rn_flow;
-dSr  = -r_n_flow   + s_r_flow;
-ddeath =  -death_birth_flow + s_suicide_flow;
+dSn  =  nn_n_flow - n_nn_flow - n_s_flow    + r_n_flow;
+dSs  = -s_r_flow  - s_rn_flow + n_s_flow    - s_suicide_flow;
+dSrn =            + s_rn_flow - rn_nn_flow;
+dSr  =  s_r_flow              - r_n_flow;
+ddeath = -death_birth_flow                  + s_suicide_flow;
 
 % check if the temporary derivatives are feasible (net flow out is less than the stock).
 % if not, than there is no outflow from the stock
