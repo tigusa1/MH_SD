@@ -7,29 +7,29 @@ global N Tmax
 % parameters
 % a1 = base rate of recovery program from suicidal
 % a2 = internal growth rate (set to 1)
-% ar = recovery program 
-% ac = community program 
-% aa = awareness program 
+% ar = recovery program
+% ac = community program
+% aa = awareness program
 % a0 = base rate of suicidal tendency from PD
 % b_suicide = rate of commit suicide from suicidal
 % pn0= initial proportional PD in non-suicidal stock
 
 
 % flow Rate constants
-% internal growth                                = a2;                 
-% community intervention                         = ac*Ic;              
-% Sn with PD to suicidal (by awareness)          = a0*(1 - aa*Ia);     
-% Ss to Sr with PD (by recovery)                 = a1*(1-ar*Ir);       
-% Ss to Sr without PD (by recovery)              = a1*((ar)*Ir);       
-% Sr no PD to Sn no PD                           = 1;                   
-% Sr PD to Sn PD                                 = 1;                   
-% sproportional of Ss to commit suicide          = b_suicide;           
+% internal growth                                = a2;
+% community intervention                         = ac*Ic;
+% Sn with PD to suicidal (by awareness)          = a0*(1 - aa*Ia);
+% Ss to Sr with PD (by recovery)                 = a1*(1-ar*Ir);
+% Ss to Sr without PD (by recovery)              = a1*((ar)*Ir);
+% Sr no PD to Sn no PD                           = 1;
+% Sr PD to Sn PD                                 = 1;
+% sproportional of Ss to commit suicide          = b_suicide;
 %----------------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------------
 % parameters initializaion
 a0 = 0.5;
-a1 = 0.3; 
+a1 = 0.3;
 a2 = 0.1;
 ar = 0.4;
 ac = 0.6;
@@ -44,7 +44,7 @@ b_suicide = 0.00001;
 pn0 = 0.3;
 
 
-% get the value by changing sliders 
+% get the value by changing sliders
 if nargin
     a0 = get(handles.a0,'Value'); handles.a0_txt.String = sprintf('a0 = %.2f (base rate of suicidal tendency from PD)',a0);
     a1 = get(handles.a1,'Value'); handles.a1_txt.String = sprintf('a1 = %.2f (base rate of recovery program from suicidal)',a1);
@@ -94,18 +94,18 @@ for k=1:size(Y,1)
     % set different y limit in subplots
     if k <5
         ylim([0,1])
-        if k > 2   
+        if k > 2
             ylim([0,0.6])
         end
     end
     if k ==5
         if max(Y(k,:)) <= 0.1
-        ylim([0,0.1])
+            ylim([0,0.1])
         else
-        ylim([0,0.3]) 
+            ylim([0,0.3])
         end
     end
-    xlim([0,Tmax])  
+    xlim([0,Tmax])
     xlabel('time (year)')
 end
 
@@ -165,7 +165,7 @@ s_rPD_rate         = a1*(1-ar*Ir);       % Ss to Sr with PD (by recovery)
 s_rnPD_rate        = a1*((ar)*Ir);       % Ss to Sr without PD (by recovery)
 rnPD_nnPD_rate     = 1;                  % Sr no PD to Sn no PD
 rPD_nPD_rate       = 1;                  % Sr PD to Sn PD
-s_suicide_rate     = b_suicide;          % proportional of Ss to commit suicide             
+s_suicide_rate     = b_suicide;          % proportional of Ss to commit suicide
 death_birth_rate   = 1;
 % flow
 nnPD_nPD_flow      = nnPD_nPD_rate .* SnnPD;   % flow from non Sn,noPD to non Sn,PD
@@ -189,8 +189,8 @@ dSrnPD = -rnPD_nnPD_flow + s_rnPD_flow;
 dSrPD  = - rPD_nPD_flow  + s_rPD_flow ;
 ddeath =  - death_birth_flow + s_suicide_flow ;
 
-% check if the temporary derivatives are feasible (net flow out is less than the stock). 
-% if not, than there is no outflow from the stock 
+% check if the temporary derivatives are feasible (net flow out is less than the stock).
+% if not, than there is no outflow from the stock
 if dSnnPD + SnnPD <= 0
     nnPD_nPD_flow = 0;
 end
@@ -214,7 +214,7 @@ if Sdeath + ddeath <= 0
     death_birth_flow = 0;
 end
 
-% recalculate Derivatives 
+% recalculate Derivatives
 dSnnPD = -nnPD_nPD_flow + nPD_nnPD_flow + rnPD_nnPD_flow + death_birth_flow;            % dSnnPD/dt
 dSnPD  = -nPD_nnPD_flow - nPD_s_flow    + nnPD_nPD_flow  + rPD_nPD_flow;
 dSs    = -s_rPD_flow    - s_rnPD_flow   - s_suicide_flow + nPD_s_flow;
