@@ -46,13 +46,7 @@ c = 0.00001;
 
 pn0 = 0.3;
 
-<<<<<<< HEAD
 % number of time steps
-=======
-Tmax = 12;                            % change yearly
-N =  600;  
-                          % number of time steps
->>>>>>> 91809398265bb727da43f171c6ba0cf0701ff00b
 
 tspan = linspace(0, Tmax, N); % unit: month
 
@@ -68,11 +62,8 @@ if nargin
 end
 SnnPD = pn0;
 W0 = [1-pn0 pn0 0 0 0];
-<<<<<<< HEAD
 Tmax = 12;                            % change yearly
 N =  600;
-=======
->>>>>>> 91809398265bb727da43f171c6ba0cf0701ff00b
 
 [SnPD, SnnPD, Ss, SrPD, SrnPD] = rk_Suicide_SD( W0);
 Y = [SnPD;SnnPD;Ss;SrPD;SrnPD;Ss*c];
