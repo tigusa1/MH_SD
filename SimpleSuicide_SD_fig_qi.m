@@ -87,17 +87,17 @@ function a0_Callback(hObject, eventdata, handles)
 SimpleSuicide_SD_qi(handles)
 
 function Ir_Callback(hObject, eventdata, handles)
-handles.Ir_new.Value = get(handles.Ir,'Value');
+handles.Ir_new.Value = get(handles.Ir,'Value');% make the I*_new sliders change with I*
 handles.Ir_new_txt.String = sprintf('Ir_new = %.2f (new recovery program index)',get(handles.Ir,'Value'));
 SimpleSuicide_SD_qi(handles)
 
 function Ic_Callback(hObject, eventdata, handles)
-handles.Ic_new.Value = get(handles.Ic,'Value');
+handles.Ic_new.Value = get(handles.Ic,'Value');% make the I*_new sliders change with I*
 handles.Ic_new_txt.String = sprintf('Ic_new = %.2f (new community program index)',get(handles.Ic,'Value'));
 SimpleSuicide_SD_qi(handles)
 
 function Ia_Callback(hObject, eventdata, handles)
-handles.Ia_new.Value = get(handles.Ia,'Value');
+handles.Ia_new.Value = get(handles.Ia,'Value');% make the I*_new sliders change with I*
 handles.Ia_new_txt.String = sprintf('Ia_new = %.2f (new awareness raising index)',get(handles.Ia,'Value'));
 SimpleSuicide_SD_qi(handles)
 
