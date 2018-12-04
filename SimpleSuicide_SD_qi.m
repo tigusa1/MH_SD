@@ -37,8 +37,6 @@ Ic = 0.30;
 Ia = 0.30;
 b_suicide = 0.01;
 
-
-
 pn0 = 0.3;
 
 % change of I at time tchange
@@ -62,13 +60,13 @@ if nargin
     Ir_new = get(handles.Ir_new,'Value'); handles.Ir_new_txt.String = sprintf('Ir_new = %.2f (new recovery program index)',Ir_new);
     Ic_new = get(handles.Ic_new,'Value'); handles.Ic_new_txt.String = sprintf('Ic_new = %.2f (new community program index)',Ic_new);
     Ia_new = get(handles.Ia_new,'Value'); handles.Ia_new_txt.String = sprintf('Ia_new = %.2f (new awareness raising index)',Ia_new);
-    trecovery = get(handles.trecovery,'Value'); handles.trecovery_txt.String = sprintf('trecovery = %.2f (time in recovery program)',trecovery);
-    tchange = get(handles.tchange,'Value'); handles.tchange_txt.String = sprintf('tchange = %.2f (time of intervention change)',tchange);
+    trecovery = get(handles.trecovery,'Value');
+    tchange   = get(handles.tchange,'Value');
     b_suicide = get(handles.b_suicide,'Value');
+    handles.trecovery_txt.String = sprintf('trecovery = %.2f (time in recovery program)',trecovery);
+    handles.tchange_txt.String   = sprintf('tchange = %.2f (time of intervention change)',tchange);
     handles.b_suicide_txt.String = sprintf('b_suicide = %.2f (rate of commit suicide from suicidal)',b_suicide);
 end
-
-
 
 Sn    = pn0;
 W0    = [Sn 1-Sn 0 0 0 0];             % initial condition: all people in non-suicidal stock
@@ -140,6 +138,12 @@ irecovery = ceil(trecovery*tscale/h);           % time steps for trecovery
 ichange   = ceil(tchange  *tscale/h);           % time step of tchange
 do_change = true;                               % command to change
 
+tFilt         = 8;                               % time of filter (months)
+nFilt         = ceil(tFilt/h/2)*2;               % number of filter points (must be even)
+% fFilt       = exp(-1/2*((-nFilt/2:nFilt/2)/(nFilt/2/3)).^2); % Gaussian filter
+fFilt         = ones(1,nFilt+1);
+fFilt         = fFilt/sum(fFilt);
+
 W(1,:)= W0;                                     % initialize W
 
 for i = 1:nt-1                                  % for each time step
@@ -157,8 +161,9 @@ for i = 1:nt-1                                  % for each time step
     k4 = fdW(Wi + k3 * h);
     dW(i,:) = (k1 + 2*k2 + 2*k3 + k4) * h/6;
     Wi1     = Wi + dW(i,:);
-    if i>irecovery
-        dWir     = dW(i-irecovery,:);           % flow at time t-trecovery
+    if i>irecovery-nFilt/2
+        iFilt    = (i-irecovery+nFilt/2) : -1 : max(1,i-irecovery-nFilt/2);
+        dWir     = fFilt(1:length(iFilt))*dW(iFilt,:);  % flow at time t-trecovery
         Wi1(1:2) = Wi1(1:2) + dWir(4:5);
         Wi1(4:5) = Wi1(4:5) - dWir(4:5);
         Wi1(1)   = Wi1(1)   + dWir(6  );
