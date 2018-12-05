@@ -38,13 +38,8 @@ aa = 0.5;
 b0 = 0.1;
 
 Ir = 0.50;
-<<<<<<< HEAD
 Ic = 0.50;
 Ia = 0.50;
-=======
-Ic = 0.51;
-Ia = 0.52;
->>>>>>> parent of e9ce562... Figures for one intervention at a time
 
 pn0= 0.3;
 
