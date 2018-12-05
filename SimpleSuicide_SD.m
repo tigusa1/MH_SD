@@ -11,12 +11,12 @@ function SimpleSuicide_SD(handles)
 % pn0= baseline proportion
 %----------------------------------------------------------------------------------------------
 a0 = 1;
-ar = 0.4;
-ac = 0.4;
-aa = 0.4;
-b0 = 0.1;
+ar = 0.5;
+ac = 0.5;
+aa = 0.5;
+b0 = 0.2;
 
-Ir = 0.0;
+Ir = 0.4;
 Ic = 0.0;
 Ia = 0.0;
 
@@ -45,26 +45,48 @@ if ~nargin
         Is     = Is0;
         Is{k}  = Iplotx;
         [ pntots{k},Sn,EStots{k},ESr,ESc,ESa,pntot0s{k},EStot0s{k},ESr0,ESc0,ESa0,ES0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
-    end
-    Is = Is0; Is{2} = Iplotx; Is{3} = Iplotx(end:-1:1);
-    [ pntots{4},Sn,EStots{4},ESr,ESc,ESa,pntot0s{4},EStot0s{4},ESr0,ESc0,ESa0,ES0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
-
-    for k=4
-%   for k=2
-%       subplot(2,2,k)
-%       plot(Iplotx,(EStot0s{k})/ES0*100,'r-',Iplotx,(EStots{k})/ES0*100,'b-','LineWidth',2)
-        plot(Iplotx,(pn0-pntot0s{k})/pn0*100,'r-',Iplotx,(pn0-pntots{k})/pn0*100,'b-','LineWidth',2)
-        ax = gca; ax.FontSize = 14; ax.XLim = [0 1]; % ax.YLim = [0 0.03];
+        
+        subplot(3,2,k*2-1)
+        plot(Iplotx,(EStot0s{k})/ES0*100,'r-',Iplotx,(EStots{k})/ES0*100,'b-','LineWidth',2)        
+        ax = gca; ax.FontSize = 14; ax.XLim = [0 1];
         xlabel([Ilbl{k} ' intervention effort'])
-%       ylabel('effect size on suicide rate (% reduction)')
-        ylabel('effect size on PD (% reduction)')
-        legend('linear model','SD model','Location','SE')
-        if k==1, title('Model comparison'), end
-        if k==4
-            keyboard
-            ax.XDir = 'reverse'; xlabel('awareness intervention effort')
+        ylabel('% reduction')
+        if k==1
+            title('Model comparison: effect size on suicide rate')
+            legend('linear model','SD model','Location','SE')
         end
-    end    
+        
+        subplot(3,2,k*2)
+        plot(Iplotx,(pn0-pntot0s{k})/pn0*100,'r-',Iplotx,(pn0-pntots{k})/pn0*100,'b-','LineWidth',2)
+        ax = gca; ax.FontSize = 14; ax.XLim = [0 1];
+        xlabel([Ilbl{k} ' intervention effort'])
+        ylabel('% reduction')
+        if k==1
+            title('Model comparison: effect size on PD')
+            legend('linear model','SD model','Location','SE')
+        end
+    end
+    
+    k = 4; % do two changes in interventions at the same time
+    Is = Is0; Is{2} = Iplotx; Is{3} = Iplotx(end:-1:1);
+    [ pntots{k},Sn,EStots{k},ESr,ESc,ESa,pntot0s{k},EStot0s{k},ESr0,ESc0,ESa0,ES0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
+
+    fig = figure(101); fig.Name = 'ES two Is'; fig.Color = 'w';
+    plot(Iplotx,(EStot0s{k})/ES0*100,'r-',Iplotx,(EStots{k})/ES0*100,'b-','LineWidth',2)
+    ax = gca; ax.FontSize = 14; ax.XLim = [0 1]; ax.YLim = [0 57];
+    xlabel([Ilbl{k} ' intervention effort'])
+    ylabel('effect size on suicide rate (% reduction)')
+    
+    fig = figure(102); fig.Name = 'Pn two Is'; fig.Color = 'w';
+    plot(Iplotx,(pn0-pntot0s{k})/pn0*100,'r-',Iplotx,(pn0-pntots{k})/pn0*100,'b-','LineWidth',2)
+    ax = gca; ax.FontSize = 14; ax.XLim = [0 1]; ax.YLim = [0 50]; ax.YTick = 0:10:50;
+    ylabel('effect size on PD (% reduction)')
+    xlabel([Ilbl{k} ' intervention effort'])
+
+    keyboard
+    ax.XDir = 'reverse'; xlabel('awareness intervention effort')
+    
+    return
 end
 
 [ Ixy{1},Ixy{2} ] = meshgrid(Iplotx,Iploty);
@@ -81,7 +103,7 @@ for k=1:3
     for j=1:2
         Is{notk(j)} = Ixy{j};
     end
-    [ pntot,Sn,EStot,ESr,ESc,ESa,EStot0,ESr0,ESc0,ESa0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
+    [ pntot,Sn,EStot,ESr,ESc,ESa,pntot0,EStot0,ESr0,ESc0,ESa0,ES0 ] = fES(a0,ar,ac,aa,b0,Is,pn0);
     
     if k<3, zmax = max(EStot(:)); end
     plotImagesc(k,1,Iplotx,Iploty,EStot, Ilbl{notk(1)},Ilbl{notk(2)},Ilbl{k},Is{k},h_axes,nargin,zmax)
