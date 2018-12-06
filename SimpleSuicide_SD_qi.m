@@ -39,7 +39,6 @@ b_suicide = 0.01;
 
 pn0 = 0.3;
 
-
 % change of I at time tchange
 tchange = 2;              % time of change (years)
 Ic_new  = 0.9;            % change I
@@ -122,49 +121,6 @@ for k=1:size(Y,2)
     xlabel('time (year)')
 end
 
-% two cases of parameters
-if ~nargin
-    ar = 0.5;
-    ac = 0.5;
-    aa = 0.5;
-    a0 = 0.2;
-    Ir = 0.4;
-    pn0= 0.3;
-    b_suicide = 0.2;
-    tchange = Tmax;                 % time of change (years) 
-    Sn    = pn0;
-    W0    = [Sn 1-Sn 0 0 0 0];      % initial condition: all people in non-suicidal stock
-    
-    % Case 1:  Ic = 0;  Ia = 1;
-    % % Case 2: Ic = 1; Ia = 0;
-    fig = figure(401)
-    fig.Position = [300,300,800,800];
-    Ic_set = [0,1];
-    Ia_set = [1,0];
-    for ncase = 1:2
-        Ic = Ic_set(ncase);
-        Ia = Ia_set(ncase);
-        Ic_new  = Ic;                   
-        Ir_new  = Ir;
-        Ia_new  = Ia;
-        [Sn_est(:,ncase), Snn_est(:,ncase), Ss_est(:,ncase),Sr_est(:,ncase), Srn_est(:,ncase), Sdeath_est(:,ncase)]...
-            = rk_Suicide_SD( W0, tscale, trecovery,tchange,Ir_new,Ic_new,Ia_new );
-        % plot percent of Sn with PD
-        figure(401),subplot(2,2,2*ncase-1),
-        plot(tspan,Sn_est(:,ncase)./(Sn_est(:,ncase)+Snn_est(:,ncase)),'LineWidth',2)
-        title(['Case ' num2str(ncase) ': percent of Sn with PD'],'FontSize',15)
-        xlabel('time (year)')
-        ylim([0,1])
-        % plot stock of suicide
-        subplot(2,2,2*ncase),
-        plot(tspan,Sdeath_est(:,ncase),'LineWidth',2)
-        title(['Case ' num2str(ncase) ': stock of suicide'],'FontSize',15)
-        xlabel('time (year)')
-        ylim([0,0.15])
-    end
-end
-keyboard
-
 
 function [Sn, Snn, Ss,Sr, Srn, Sdeath] = rk_Suicide_SD( W0, tscale, trecovery,tchange,Ir_new,Ic_new,Ia_new )
 %----------------------------------------------------------------------------------------------
@@ -196,7 +152,7 @@ for i = 1:nt-1                                  % for each time step
         do_change = false;                      % turn off command to change
         Ir        = Ir_new;
         Ic        = Ic_new;
-        Ia        = Ia_new;
+        Ia        = Ia_new;       
     end
     Wi = W(i,:);                                % get W at time t
     k1 = fdW(Wi);                               % integrate one step using Runge-Kutta
